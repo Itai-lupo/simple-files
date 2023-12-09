@@ -7,7 +7,8 @@
 #include <unistd.h>
 #include <sys/poll.h>
 
-#include "log.h"
+#include "defines/errType.h"
+
 typedef struct
 {
 	int fd;

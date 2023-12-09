@@ -1,7 +1,12 @@
 #include "files.h"
 
+#include "defaultTrace.h"
+#include "err.h"
+
 #include <fcntl.h>
 #include <sys/poll.h>
+
+#define NAX_IO_RETRIES 3
 
 THROWS err_t safe_open(const char *const path, int flags, mode_t mode, fd_t *fd)
 {
@@ -20,13 +25,18 @@ cleanup:
 THROWS err_t safe_read(fd_t fd, void *buf, size_t size, ssize_t *outSize)
 {
 	err_t err = NO_ERRORCODE;
-	ssize_t tempOutSize = 0;
+	ssize_t tempOutSize = -1;
 
 	QUITE_CHECK(outSize != NULL);
 	QUITE_CHECK(buf != NULL);
 
-	tempOutSize = read(fd.fd, buf, size);
-	QUITE_CHECK(tempOutSize != -1);
+	for(size_t i = 0; i < NAX_IO_RETRIES && tempOutSize == -1; i++)
+	{
+		tempOutSize = read(fd.fd, buf, size);
+		CHECK(((tempOutSize != -1) || errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR));
+	}
+
+	QUITE_CHECK((tempOutSize != -1));
 
 cleanup:
 	*outSize = tempOutSize;
