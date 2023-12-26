@@ -1,3 +1,15 @@
+/**
+ * @file files.h
+ * @author itai lupo
+ * @brief wrapper for safe and fast file operations
+ * @note all functions use quite checks unless otherwise is specfied.
+ * @version 0.1
+ * @date 2023-12-27
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+
 #pragma once
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -35,7 +47,20 @@ extern "C"
 	 * @return err_t f there was an error with the parms or while opening the file
 	 * @see https://man7.org/linux/man-pages/man2/open.2.html
 	 */
-	THROWS err_t safeOpen(const char *const path, int flags, mode_t mode, fd_t *fd);
+	THROWS err_t safeOpen(const char *const path, const int flags, const mode_t mode, fd_t *fd);
+
+	/**
+	 * @brief open a file descriptor to a file in the formated path
+	 *
+	 * @paramFormat the format of the path to the file
+	 * @param flags the flags to open the file with
+	 * @param mode the mode the file should be opened in
+	 * @param fd the result fd will be placed here
+	 * @return err_t f there was an error with the parms or while opening the file
+	 * @see https://man7.org/linux/man-pages/man2/open.2.html
+	 * @note if the formated path is more then MAX_PATH will return EINVAL error
+	 */
+	THROWS err_t safeOpenFmt(const char *const pathFormat, const int flags, const mode_t mode, fd_t *fd, ...);
 
 	/**
 	 * @brief closes fd
@@ -56,7 +81,7 @@ extern "C"
 	 * @return err_t if there was any error while reading from the files or with the parms
 	 * @see https://man7.org/linux/man-pages/man2/read.2.html
 	 */
-	THROWS err_t safeRead(fd_t fd, void *buf, size_t size, ssize_t *outSize);
+	THROWS err_t safeRead(fd_t fd, void *buf, size_t size, ssize_t *const outSize);
 
 	/**
 	 * @brief write buf of size size to fd
@@ -68,7 +93,20 @@ extern "C"
 	 * @return err_t if there was any error while writing to the files or with the parms
 	 * @see https://man7.org/linux/man-pages/man2/write.2.html
 	 */
-	THROWS err_t safeWrite(fd_t fd, void *buf, size_t size, ssize_t *bytesWritten);
+	THROWS err_t safeWrite(fd_t fd, const void *const buf, const size_t size, ssize_t *const bytesWritten);
+
+	/**
+	 * @brief write formated fmt to fd
+	 *
+	 * @param fd the file descriptor to write to.
+	 * @param fmt the format to write.
+	 * @param size the size of the buffer.
+	 * @param bytesWritten how many bytes were written to fd, on full write should be size
+	 * @return err_t if there was any error while writing to the files or with the parms
+	 * @see https://man7.org/linux/man-pages/man2/write.2.html
+	 * @note use asprintf(that uses malloc and free)
+	 */
+	THROWS err_t safeWriteFmt(fd_t fd, const char *const fmt, ssize_t *const bytesWritten, ...);
 
 	/**
 	 * @brief poll on fds until the callback tells it to stop or until error
@@ -83,8 +121,8 @@ extern "C"
 	 * @see pollCallback
 	 * @see man poll https://man7.org/linux/man-pages/man2/poll.2.html
 	 */
-	THROWS err_t safePpoll(struct pollfd *fds, int ntfds, struct timespec *timeout, const sigset_t *sigmask,
-						   pollCallback callback, void *ptr);
+	THROWS err_t safePpoll(struct pollfd *const fds, const int ntfds, const struct timespec *const timeout,
+						   const sigset_t *const sigmask, const pollCallback callback, void *const ptr);
 
 #ifdef __cplusplus
 }
