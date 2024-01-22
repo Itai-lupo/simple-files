@@ -89,7 +89,7 @@ THROWS err_t safeRead(fd_t fd, void *buf, const size_t size, ssize_t *outSize)
 	for (size_t i = 0; i < NAX_IO_RETRIES && tempOutSize == -1; i++)
 	{
 		tempOutSize = read(fd.fd, buf, size);
-		CHECK(((tempOutSize != -1) || errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR));
+		QUITE_CHECK(((tempOutSize != -1) || errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR));
 	}
 
 	QUITE_CHECK((tempOutSize != -1));
